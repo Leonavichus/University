@@ -10,8 +10,8 @@ using namespace cv;
 using namespace std;
 
 int main() {
-    // Загрузка изображения с штрих-кодом
-    Mat I = imread("images.jpeg", IMREAD_GRAYSCALE); // Замените на путь к вашему изображению
+    // Загрузка изображения с штрих-кодом в оттенках серого
+    Mat I = imread("images.jpeg", IMREAD_GRAYSCALE); // Укажите путь к изображению с штрих-кодом
 
     // Проверка успешности загрузки изображения
     if (I.empty()) {
@@ -19,43 +19,47 @@ int main() {
         return -1;
     }
 
-    // Бинаризация изображения (черно-белое)
+    // Бинаризация изображения с применением автоматического порогового значения Otsu
     Mat binaryImage;
-    threshold(I, binaryImage, 128, 255, THRESH_BINARY); // Порог для бинаризации
+    threshold(I, binaryImage, 0, 255, THRESH_BINARY | THRESH_OTSU);
 
-    // Построение горизонтального профиля вдоль изображения (по линии через штрих-код)
-    int profileHeight = I.rows / 2; // Высота линии, вдоль которой строим профиль
-    Mat profile = Mat::zeros(1, I.cols, CV_32F);
+    // Определение центральной линии для профиля штрих-кода
+    int profileLine = I.rows / 2; // Высота линии профиля - середина изображения
+    Mat profile = Mat::zeros(1, I.cols, CV_32F); // Массив для хранения значений профиля
 
-    // Суммируем интенсивности пикселей вдоль горизонтальной линии
+    // Суммируем интенсивности пикселей вдоль горизонтальной области вокруг центральной линии
+    int profileBand = 10; // Полу-ширина зоны, используемой для усреднения
     for (int j = 0; j < I.cols; j++) {
-        for (int i = profileHeight - 10; i < profileHeight + 10; i++) { // Берем небольшую область вдоль линии
-            profile.at<float>(0, j) += binaryImage.at<uchar>(i, j); // Сумма интенсивности (пикселей черного цвета)
+        float sum = 0;
+        for (int i = profileLine - profileBand; i <= profileLine + profileBand; i++) {
+            sum += binaryImage.at<uchar>(i, j); // Суммируем интенсивности пикселей
         }
+        profile.at<float>(0, j) = sum / (2 * profileBand + 1); // Считаем среднюю интенсивность
     }
 
-    // Нормализация профиля для лучшего отображения
+    // Нормализация профиля для отображения
     normalize(profile, profile, 0, 255, NORM_MINMAX);
 
-    // Создаем изображение для отображения профиля
-    Mat profileImg = Mat::zeros(100, I.cols, CV_8UC3);
-    for (int i = 0; i < I.cols; i++) {
-        line(profileImg, Point(i, profileImg.rows), Point(i, profileImg.rows - cvRound(profile.at<float>(0, i))), Scalar(255, 255, 255), 1);
+    // Создаем изображение для графического отображения профиля
+    Mat profileImg = Mat::zeros(100, I.cols, CV_8UC3); // Пустое изображение для профиля
+    for (int j = 0; j < I.cols; j++) {
+        int intensity = cvRound(profile.at<float>(0, j)); // Преобразуем значение профиля в целое число
+        line(profileImg, Point(j, profileImg.rows), Point(j, profileImg.rows - intensity), Scalar(255, 255, 255), 1); // Рисуем линию интенсивности
     }
 
-    // Отображение изображения и профиля
+    // Отображение исходного изображения и профиля
     namedWindow("Изображение с штрих-кодом", WINDOW_NORMAL);
     resizeWindow("Изображение с штрих-кодом", 800, 600);
     namedWindow("Профиль изображения", WINDOW_NORMAL);
     resizeWindow("Профиль изображения", 800, 600);
 
-    imshow("Изображение с штрих-кодом", I);
-    imshow("Профиль изображения", profileImg);
+    imshow("Изображение с штрих-кодом", I);         // Отображение оригинального изображения
+    imshow("Профиль изображения", profileImg);      // Отображение построенного профиля
 
-    // Ожидание нажатия клавиши для закрытия окон
+    // Ожидание нажатия клавиши для завершения программы
     while (true) {
-        int key = waitKey(0);  // Ожидание нажатия любой клавиши
-        if (key == 'q' || key == 'Q') {  // Проверка нажатия 'q' или 'Q'
+        int key = waitKey(0);
+        if (key == 'q' || key == 'Q') {  // Нажатие 'q' или 'Q' завершает выполнение
             break;
         }
     }
