@@ -21,25 +21,24 @@ Mat exponentialTransform(const Mat& src, double gamma) {
     return dst;
 }
 
-// Функция для преобразования по закону Рэлея
-cv::Mat rayleighTransform(const cv::Mat& src, double sigma) {
-    cv::Mat dst;
-    src.convertTo(dst, CV_32F);               // Конвертация в 32-битный формат с плавающей запятой
-    dst = dst.mul(dst) / (2 * sigma * sigma); // Вычисление экспоненты по закону Рэлея
-    cv::exp(-dst, dst);                       // Применение экспоненциальной функции
-    dst = 1 - dst;                            // Инверсия для получения результирующего изображения
+// Функция для гиперболического преобразования
+Mat hyperbolicTransform(const Mat& src, double alpha) {
+    Mat dst;
+    src.convertTo(dst, CV_32F); // Конвертация в 32-битный формат
+    dst = alpha * dst;          // Масштабирование с коэффициентом alpha
+    Mat expPos, expNeg;
+    exp(dst, expPos);           // Вычисление e^(alpha * dst)
+    exp(-dst, expNeg);          // Вычисление e^(-alpha * dst)
+    dst = (expPos - expNeg) / (expPos + expNeg); // Гиперболическое преобразование
     return dst;
 }
 
-// Функция для гиперболического преобразования
-cv::Mat hyperbolicTransform(const cv::Mat& src, double alpha) {
-    cv::Mat dst;
-    src.convertTo(dst, CV_32F);               // Конвертация в 32-битный формат с плавающей запятой
-    dst = alpha * dst;                        // Масштабирование с коэффициентом alpha
-    cv::Mat expPos, expNeg;
-    cv::exp(dst, expPos);                     // Вычисление e^(alpha * dst)
-    cv::exp(-dst, expNeg);                    // Вычисление e^(-alpha * dst)
-    dst = (expPos - expNeg) / (expPos + expNeg); // Аппроксимация гиперболического тангенса
+// Функция для преобразования по закону степени (2/3)
+Mat powerTransform(const Mat& src, double power) {
+    Mat dst;
+    src.convertTo(dst, CV_32F, 1.0 / 255.0); // Нормализация к диапазону [0, 1]
+    pow(dst, power, dst);                    // Преобразование по степени
+    dst.convertTo(dst, CV_8U, 255);          // Обратная конвертация к диапазону [0, 255]
     return dst;
 }
 
@@ -51,32 +50,26 @@ int main() {
         return -1;
     }
 
-    // Преобразование в оттенки серого для упрощения обработки
+    // Преобразование в оттенки серого
     Mat gray;
     cvtColor(I, gray, COLOR_BGR2GRAY);
 
     // 1. Выравнивание гистограммы
     Mat equalized;
-    equalizeHist(gray, equalized);  // Улучшение контраста с помощью выравнивания гистограммы
+    equalizeHist(gray, equalized);
 
     // 2. Растяжение динамического диапазона
     Mat stretched;
-    normalize(gray, stretched, 0, 255, NORM_MINMAX); // Нормализация для растяжения контраста
+    normalize(gray, stretched, 0, 255, NORM_MINMAX);
 
     // 3. Экспоненциальное преобразование
-    Mat exponential = exponentialTransform(gray, 2.0); // Применение экспоненциального преобразования
+    Mat exponential = exponentialTransform(gray, 2.0);
 
-    // 4. Преобразование по закону Рэлея
-    Mat rayleigh = rayleighTransform(gray, 0.5); // Применение преобразования Рэлея
+    // 4. Преобразование по закону степени (2/3)
+    Mat power = powerTransform(gray, 2.0 / 3.0);
 
-    // 5. Преобразование по закону степени (2/3)
-    Mat power;
-    gray.convertTo(power, CV_32F, 1.0 / 255.0); // Нормализация к диапазону [0, 1]
-    pow(power, 2.0 / 3.0, power);               // Применение преобразования по степени 2/3
-    power.convertTo(power, CV_8U, 255);         // Возвращение к диапазону [0, 255] и 8-битному формату
-
-    // 6. Гиперболическое преобразование
-    Mat hyperbolic = hyperbolicTransform(gray, 5.0); // Применение гиперболического преобразования
+    // 5. Гиперболическое преобразование
+    Mat hyperbolic = hyperbolicTransform(gray, 5.0);
 
     // Отображение всех изображений
     namedWindow("Оригинальное изображение", WINDOW_NORMAL); // Создание окна для оригинального изображения
@@ -94,10 +87,6 @@ int main() {
     namedWindow("Экспоненциальное преобразование", WINDOW_NORMAL);
     resizeWindow("Экспоненциальное преобразование", 800, 600);
     imshow("Экспоненциальное преобразование", exponential);  // Показ изображения после экспоненциального преобразования
-
-    namedWindow("Преобразование по закону Рэлея", WINDOW_NORMAL);
-    resizeWindow("Преобразование по закону Рэлея", 800, 600);
-    imshow("Преобразование по закону Рэлея", rayleigh);      // Показ изображения после преобразования Рэлея
 
     namedWindow("Преобразование по закону степени 2/3", WINDOW_NORMAL);
     resizeWindow("Преобразование по закону степени 2/3", 800, 600);
