@@ -11,7 +11,6 @@ using namespace cv;
 using namespace std;
 
 int main() {
-    // Загрузка изображения в оттенках серого
     Mat I = imread("ava2.jpg", IMREAD_GRAYSCALE);
 
     // Проверка успешности загрузки изображения
@@ -76,8 +75,8 @@ int main() {
 
     // Ожидание нажатия клавиши для закрытия окон
     while (true) {
-        int key = waitKey(0);  // Ожидание нажатия любой клавиши
-        if (key == 'q' || key == 'Q') {  // Проверка нажатия 'q' или 'Q'
+        int key = waitKey(0);
+        if (key == 'q' || key == 'Q') {
             break;
         }
     }

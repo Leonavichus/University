@@ -137,7 +137,7 @@ void applyPillowDistortion(Mat &img) {
  */
 int main() {
     // Загрузка изображения
-    Mat img = imread("background.png"); // Укажите путь к изображению
+    Mat img = imread("background.png");
     if (img.empty()) {
         cerr << "Ошибка загрузки изображения!" << endl;
         return -1;

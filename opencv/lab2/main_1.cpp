@@ -12,7 +12,7 @@ using namespace std;
 
 int main() {
     // Загрузка изображения
-    string imagePath = "background.png"; // Укажите путь к вашему изображению
+    string imagePath = "background.png";
     Mat img = imread(imagePath);
     if (img.empty()) {
         cerr << "Ошибка: Не удалось загрузить изображение по пути: " << imagePath << endl;

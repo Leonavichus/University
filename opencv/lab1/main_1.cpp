@@ -44,7 +44,7 @@ Mat powerTransform(const Mat& src, double power) {
 
 int main() {
     // Загрузка изображения
-    Mat I = imread("background.png", IMREAD_COLOR); // Чтение изображения в цвете
+    Mat I = imread("background.png", IMREAD_COLOR);
     if (I.empty()) {
         cerr << "Ошибка: не удалось загрузить изображение!" << endl;
         return -1;
@@ -99,7 +99,7 @@ int main() {
     // Ожидание нажатия клавиши для закрытия окон
     while (true) {
         int key = waitKey(0);
-        if (key == 'q' || key == 'Q') { // Закрытие программы по нажатию 'q' или 'Q'
+        if (key == 'q' || key == 'Q') {
             break;
         }
     }

@@ -10,8 +10,7 @@ using namespace cv;
 using namespace std;
 
 int main() {
-    // Загрузка изображения с штрих-кодом в оттенках серого
-    Mat I = imread("images.jpeg", IMREAD_GRAYSCALE); // Укажите путь к изображению с штрих-кодом
+    Mat I = imread("images.jpeg", IMREAD_GRAYSCALE);
 
     // Проверка успешности загрузки изображения
     if (I.empty()) {
@@ -59,7 +58,7 @@ int main() {
     // Ожидание нажатия клавиши для завершения программы
     while (true) {
         int key = waitKey(0);
-        if (key == 'q' || key == 'Q') {  // Нажатие 'q' или 'Q' завершает выполнение
+        if (key == 'q' || key == 'Q') {
             break;
         }
     }
